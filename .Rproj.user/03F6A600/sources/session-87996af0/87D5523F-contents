@@ -1,0 +1,137 @@
+---
+title: "Ujian Tengah Semester TA 2025/2026"
+subtitle: "Prodi Teknologi Rekayasa Perangkat Lunak"
+author: "oleh: Hermawan Sentyaki Sarjito (J0403231111)"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  pdf_document:
+      number_sections: true
+      toc: true
+      toc_depth: 3
+      latex_engine: xelatex
+      
+toc-title: "Daftar Isi"
+mainfont: Georgia
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Impor paket yang dibutuhkan terlebih dahulu
+```{r, eval=TRUE, warning=FALSE, message=FALSE, comment=NA, fig.align='center', out.width='50%'}
+
+if(!require(dplyr)){install.packages("dplyr")}
+if(!require(dplyr)){install.packages("ggplot2")}
+if(!require(dplyr)){install.packages("car")}
+library(dplyr)
+library(ggplot2)
+library(car)
+```
+
+# Deskripsi Data
+## Ringkasan Statistik
+```{r, eval=TRUE, warning=FALSE, message=FALSE, comment=NA, fig.align='center', out.width='50%'}
+# Load dataset
+data(longley)
+
+# Lihat struktur data
+str(longley)
+
+# Ringkasan statistik
+summary <- round(data.frame(
+  mean = sapply(longley[, c("GNP", "Unemployed", "Population", "Employed")], mean),
+  median = sapply(longley[, c("GNP", "Unemployed", "Population", "Employed")], median),
+  sd = sapply(longley[, c("GNP", "Unemployed", "Population", "Employed")], sd),
+  min = sapply(longley[, c("GNP", "Unemployed", "Population", "Employed")], min),
+  max = sapply(longley[, c("GNP", "Unemployed", "Population", "Employed")], max)
+), 2)
+
+summary
+```
+Dari hasil ringkasan diatas dapat terdapat perbedaan yang sangat jelas dan kontras untuk beberapa variabel. Pertama adalah variabel GNP dan Unemployed dengan rata-rata GNP: 387.7 miliar USD dan Unemployed: 319.33 ribu orang  memiliki sebaran yang sangat luas dan heterogen, hal ini dapat dikonfirmasi dengan nilai standar deviasi kedua variabel tersebut yang sangat besar, yaitu GNP: 99.39 dan Unemployed: 93.45. Sebaliknya, variabel Population dan Employed dengan rata-rata Population: 117.42 juta orang dan Employed: 65.32 juta orang memiliki sebaran data yang lebih terpusat dan homogen, hal ini dapat dikonfirmasi dengan nilai standar deviasinya yang cenderung lebih kecil, yaitu Population: 6.96 dan Employed: 3.51.
+
+## Hubungan GNP dan Employed
+```{r, eval=TRUE, warning=FALSE, message=FALSE, comment=NA, fig.align='center', out.width='50%'}
+ggplot(longley, aes(x = GNP, y = Employed)) +
+  geom_point(color = "blue", size = 3) +
+  labs(
+    title = "Hubungan antara GNP dan Jumlah Pekerja di USA tahun 1947-1962",
+    x = "GNP (miliar USD)",
+    y = "Jumlah Pekerja (juta orang)"
+  ) +
+  theme_minimal()
+```
+Dari visualisasi scatter plot yang telah dibuat dapat terihat bahwa hubungan GNP dan jumlah pekerja (Employed) memiliki hubungan yang sangat kuat dan memiliki hubungan positif, hal tersebut dapat terlihat dari grafik yang naik secara proporsional secara linear. Hal ini menunjukan bahwa pertumbuhan ekonomi USA pada tahun 1947-1962 sangat selaras dengan peningkatan penyerapan tenaga kerja.
+
+## Korelasi Beberapa Variabel terhadap Variabel Employed
+```{r, eval=TRUE, warning=FALSE, message=FALSE, comment=NA, fig.align='center', out.width='50%'}
+corVar <- longley[, c("GNP", "Unemployed", "Population", "Employed")]
+corMatrix <- round(cor(corVar), 2)
+corMatrix
+```
+Dari matriks korelasi pearson di atas, variabel yang paling berhubungan dengan Employed adalah GNP dan Population. Alasan utamanya adalah karena GNP memiliki koefisien korelasi tertinggi dengan Employed, yaitu sekitar 0.98 untuk GNP dan 0.96 untuk Population. Hal ini memiliki arti bahwa ketika ekonomi tumbuh maka lapangan kerja juga meningkat secara beriringan dan populasi yang dapat diartikan sebagai pasokan tenaga kerja yang banyak juga akan menghasilkan jumlah pekerja yang juga meningkat. Kesimpulannya adalah ekonomi Amerika Serikat pada tahun 1947-1962 sangat sehat.
+
+# Estimasi
+## Model Regresi Linier Sederhana
+```{r, eval=TRUE, warning=FALSE, message=FALSE, comment=NA, fig.align='center', out.width='50%'}
+model <- lm(Employed ~ GNP, data = longley)
+modelSummary <- summary(model)
+
+# Koefisien regresi
+coefficients <- modelSummary$coefficients
+coefficients
+# Nilai R-squared
+rSquared <- modelSummary$r.squared
+rSquared
+# Nilai p-value untuk keseluruhan model
+fStat <- modelSummary$fstatistic
+pValue <- pf(fStat[1], fStat[2], fStat[3], lower.tail = FALSE)
+pValue
+```
+Interpretasi dari hasil regresi ini adalah koefisien slope untuk GNP sebesar 0.03475 memiliki makna ekonomi yang signifikan dalam konteks ini. Mengingat Employed diukur dalam juta orang dan GNP dalam miliar USD, nilai ini mengindikasikan bahwa setiap kenaikan 1 miliar USD pada GNP diprediksi akan meningkatkan jumlah pekerja sebanyak 0.03475 juta orang, atau setara dengan 34.752 orang. Secara esensial, model ini menunjukkan bahwa pertumbuhan ekonomi sangat berdampak langsung terhadap penciptaan lapangan kerja, dengan setiap miliar dolar pertumbuhan berkontribusi pada penambahan sekitar 34.752 pekerjaan, dengan asumsi tanpa memperhatikan faktor lain di luar itu.
+
+## Model Regresi Linier Berganda
+```{r, eval=TRUE, warning=FALSE, message=FALSE, comment=NA, fig.align='center', out.width='50%'}
+model2 <- lm(Employed ~ GNP + Unemployed + Population, data = longley)
+summaryModel2 <- summary(model2)
+# Koefisien regresi
+coefficients2 <- summaryModel2$coefficients
+coefficients2
+# Nilai R-squared
+rSquared2 <- summaryModel2$r.squared
+rSquared2
+# Nilai p-value untuk keseluruhan model
+fStat2 <- summaryModel2$fstatistic
+pValue2 <- pf(fStat2[1], fStat2[2], fStat2[3], lower.tail = FALSE)
+pValue2
+
+vif_values <- vif(model2)
+vif_values
+```
+Berdasarkan analisis, meskipun model regresi berganda ini menunjukkan kemampuan penjelasan yang sangat tinggi (R-squared 98.1%) dan signifikan secara keseluruhan, namun model ini bermasalah karena masalah multikolinearitas yang parah. Hal ini terbukti dari nilai Variance Inflation Factor (VIF) yang ekstrem untuk GNP (148) dan Population (178), sedangakan GNP hanya 4. Multikolinearitas inilah yang menyebabkan koefisien regresi menjadi tidak stabil, hal ini dapat dibuktikan dari variabel Unemployed dan Population secara statistik (p > 0.05) serta munculnya koefisien negatif pada Population. Akibatnya, hanya GNP yang tersisa sebagai variabel yang signifikan, di mana setiap kenaikan 1 miliar USD diprediksi menambah sekitar 47.600 pekerjaan. Ini menegaskan bahwa setelah pengaruh kuat GNP diperhitungkan, variabel lain tidak lagi memberikan kontribusi prediktif yang berarti, sehingga model yang lebih sederhana dengan 1 variabel (GNP) adalah pilihan yang lebih dapat diandalkan.
+
+# Prediksi
+## Prediksi menggunakan Model Linier Sederhana
+```{r, eval=TRUE, warning=FALSE, message=FALSE, comment=NA, fig.align='center', out.width='50%'}
+new_data <- data.frame(GNP = c(400, 500, 600))
+predictions <- predict(model, newdata = new_data, interval = "prediction", level = 0.95)
+predictions
+```
+Hasil prediksi ini menampilkan prediksi jumlah pekerja (Employed) berdasarkan GDP yang diberikan. Tidak hanya memprediksi dari perhitungan terbaik, tetapi prediksi ini juga memberikan interval kepercayaan 95%, yang mana ini bisa menunjukan ketidakpastian juga. Misalnya untuk GNP 400 miliar USD, prediksi terbaik (fit) adalah akan ada 65.74 juta orang pekerja, tetapi kita juga mendapatkan ketidakpastian di masa depan dengan ambang batas dan ambang bawah dengan interval kepercayaan 95%, maka kita dapat yakin bahwa setidaknya akan ada 64.29 juta orang pekerja (lwr) hingga 67.19 juta orang pekerja (upr). 
+
+## Prediksi menggunakan Model Linier Berganda
+```{r, eval=TRUE, warning=FALSE, message=FALSE, comment=NA, fig.align='center', out.width='50%'}
+new_data2 <- data.frame(
+  GNP = c(550, 600),
+  Unemployed = c(250, 200),
+  Population = c(115, 120)
+)
+predictions2 <- predict(model2, newdata = new_data2, interval = "prediction", level = 0.95)
+predictions2
+```
+
+Prediksi menggunakan model linear berganda menunjukan hasil berbeda dengan model linear sederhana. Menggunakan interval kepercayaan 95% didapatkan hasil untuk GNP 550 miliar USD, prediksi terbariknya adalah 73.65 juta orang pekerja dengan ketidakpastian dari 66.55 hingga 80.81 juta orang pekerja. Lalu untuk GNP 600 miliar USD didapatkan hasil prediksi terbaiknya adalah 75.48 juta orang pekerja dengan ketidakpastian dari 69.62 hingga 81.35 juta orang pekerja.
+
+## Interpretasi Kebijakan
+Berdasarkan hasil model regresi berganda, kebijakan yang secara statistik terbukti paling efektif untuk meningkatkan jumlah pekerja (Employed) adalah dengan menaikkan GNP. Alasannya adalah karena GNP menunjukkan hubungan yang positif dan signifikan secara statistik (p < 0.05) dengan jumlah pekerja, yang menandakan bahwa pertumbuhan ekonomi sangat berpengaruh menciptakan lapangan kerja. Sebaliknya, pengaruh variabel Unemployed dalam model ini terbukti tidak signifikan secara statistik (p > 0.05). Hal ini menunjukkan bahwa dampak dari perubahan angka pengangguran (Unemployed) kemungkinan besar sudah 'terserap' oleh variabel GNP yang lebih dominan, sehingga menjadikan kebijakan yang berfokus pada pertumbuhan ekonomi sebagai langkah yang lebih baik dan terukur untuk menambah jumlah pekerja menurut model ini.

@@ -1,0 +1,167 @@
+---
+title: "Judul Penelitian"
+author: "**Nama Kelompok**  \n- Anggota 1  \n- Anggota 2  \n- Anggota 3  \n"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css:
+    - default
+    - metropolis
+    nature:
+      slideNumber: true
+      highlightStyle: github
+  html_document:
+    df_print: paged
+---
+
+# Judul Penelitian
+### Nama Kelompok  
+Anggota:
+- Nama 1  
+- Nama 2  
+- Nama 3  
+
+---
+
+# Latar Belakang
+
+- Isi latar belakang penelitian di sini  
+- Jelaskan konteks masalah  
+- Mengapa penelitian ini penting?
+
+---
+
+# Rumusan Masalah
+
+- Apa masalah utama yang ingin diselesaikan?
+- Pertanyaan penelitian yang ingin dijawab.
+
+---
+
+# Tujuan Penelitian
+
+- Tujuan umum  
+- Tujuan khusus  
+- Output yang diharapkan
+
+---
+
+# Sumber dan Karakteristik Data
+
+**Sumber Data:**
+- Misalnya: Kaggle, survei, database perusahaan, dsb.
+
+**Karakteristik Data:**
+- Jumlah observasi
+- Jumlah variabel
+- Tipe data
+- Periode pengambilan data
+
+---
+
+class: inverse, center, middle
+
+# Metodologi Data Mining  
+## Menggunakan CRISP-DM  
+**Menuju pembahasan berikutnya →**
+
+---
+
+# Business Understanding
+
+- Jelaskan konteks bisnis  
+- Apa tujuan bisnis?  
+- Siapa stakeholder?  
+- KPI yang ingin ditingkatkan?
+
+---
+
+# Data Understanding
+
+- Deskripsi awal data  
+- Exploratory Data Analysis (EDA)  
+- Identifikasi missing values, outliers  
+- Penjelasan variabel penting
+
+---
+
+# Data Preparation
+
+- Data cleaning  
+- Handling missing values  
+- Feature engineering  
+- Encoding, scaling, normalisasi  
+- Train-test split
+
+---
+
+# Modeling
+
+- Model yang diujicobakan  
+- Parameter yang digunakan  
+- Alasan pemilihan algoritma  
+- Hasil training
+
+---
+
+# Evaluation
+
+- Metode evaluasi: accuracy, precision/recall, RMSE, AUC, dsb  
+- Perbandingan model  
+- Interpretasi hasil
+
+---
+
+# Deployment
+
+- Rencana implementasi model  
+- Integrasi ke sistem  
+- Monitoring dan maintenance
+
+---
+
+class: inverse, center, middle
+
+# CRISP-DM Selesai  
+## → Pembahasan Lanjutan
+
+---
+
+# Teknik dan Algoritma yang Digunakan
+
+- Algoritma 1 (misal: Random Forest)  
+- Algoritma 2 (misal: SVM)  
+- Penjelasan singkat alasan pemilihan  
+- Kompleksitas dan kebutuhan komputasi
+
+---
+
+# Rencana Implementasi & Alat yang Digunakan
+
+**Tools:**
+- R / Python
+- RStudio / Jupyter / VSCode
+- Database: PostgreSQL / MySQL
+- Dashboard: Shiny / Power BI, dll
+
+**Rencana Implementasi:**
+- Tahap 1: Preprocessing
+- Tahap 2: Model training
+- Tahap 3: Integrasi ke aplikasi
+- Tahap 4: Monitoring
+
+---
+
+# Hasil yang Diharapkan dan Dampak
+
+- Manfaat bagi organisasi  
+- Output prediksi atau insight  
+- Dampak bisnis / efisiensi operasional  
+- Potensi pengembangan ke depan
+
+---
+
+class: center, middle
+
+# Terima Kasih  
+### Pertanyaan?

@@ -1,0 +1,132 @@
+---
+title: "Heart Failure Prediction (R) - Revisi Kritis & Robust"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+# Muat library
+library(tidyverse)
+library(caret)
+library(randomForest)
+```
+
+### 1. Muat Data & Split Data (Mencegah Kebocoran)
+
+Kita harus membagi data **sebelum** melakukan pra-pemrosesan apa pun.
+
+```{r load-split-data}
+# Muat data.
+df <- read.csv("heart.csv")
+
+# Handling RestingBP = 0 (Drop rows) - Ini bisa dilakukan di awal
+df <- df %>%
+  filter(RestingBP > 0)
+
+# Pisahkan data latih dan data uji (80/20)
+set.seed(26)
+trainIndex <- createDataPartition(df$HeartDisease, p = .8, 
+                                  list = FALSE, 
+                                  times = 1)
+
+train_data <- df[ trainIndex,]
+test_data  <- df[-trainIndex,]
+
+dim(train_data)
+dim(test_data)
+```
+
+### 2. Pra-pemrosesan (Tanpa Kebocoran)
+
+Kita akan membuat preprocessing secara terpisah untuk data latih dan uji.
+
+```{r preprocessing-no-leak}
+# --- PRA-PEMROSESAN DATA LATIH ---
+
+# 1. Hitung median HANYA dari data latih
+valid_chol_median <- train_data %>%
+  filter(Cholesterol > 0) %>%
+  summarise(MedianChol = median(Cholesterol, na.rm = TRUE)) %>%
+  pull(MedianChol)
+
+print(paste("Median kolesterol DARI DATA LATIH:", valid_chol_median))
+
+# 2. Terapkan median ke data latih
+train_data <- train_data %>%
+  mutate(Cholesterol = ifelse(Cholesterol == 0, valid_chol_median, Cholesterol))
+
+# 3. Ubah tipe data latih menjadi factor
+categorical_cols <- c('Sex', 'ChestPainType', 'RestingECG', 'ExerciseAngina', 'ST_Slope', 'FastingBS', 'HeartDisease')
+train_data <- train_data %>%
+  mutate(across(all_of(categorical_cols), as.factor))
+
+
+# --- PRA-PEMROSESAN DATA UJI ---
+
+# 1. Terapkan median DARI DATA LATIH ke data uji (PENTING!)
+test_data <- test_data %>%
+  mutate(Cholesterol = ifelse(Cholesterol == 0, valid_chol_median, Cholesterol))
+
+# 2. Ubah tipe data uji menjadi factor
+test_data <- test_data %>%
+  mutate(across(all_of(categorical_cols), as.factor))
+
+glimpse(train_data)
+glimpse(test_data)
+```
+
+### 3. Pembangunan Model (Robust dengan Cross-Validation & Scaling)
+
+Di sinilah letak perubahan terbesarnya.
+
+```{r train-model-robust}
+# 1. Tentukan metode validasi: 10-Fold Cross-Validation (CV)
+# Ini akan menggantikan validasi 80/20 tunggal yang tidak stabil
+set.seed(18)
+trControl <- trainControl(method = "cv",
+                          number = 10) # 10-Fold CV
+
+# 2. Latih model
+model <- train(HeartDisease ~ ., 
+               data = train_data, 
+               method = "rf",            # RandomForest
+               trControl = trControl,    # Gunakan 10-Fold CV
+               preProcess = c("center", "scale") # Terapkan scaling (Best Practice)
+               )
+
+# Hasil 'model' sekarang jauh lebih bisa diandalkan.
+# Ini menunjukkan rata-rata akurasi & kappa dari 10-fold CV
+print(model)
+```
+
+### 4. Evaluasi Akhir (pada Data Uji)
+
+Kita tetap menggunakan data uji pada akhirnya, tetapi sekarang kita tahu bahwa model kita telah divalidasi dengan kuat.
+
+```{r evaluate-model}
+# Buat prediksi pada data uji (test_data)
+y_pred <- predict(model, newdata = test_data)
+
+# Definisikan y_test (variabel target dari test_data)
+y_test <- test_data$HeartDisease
+
+# Evaluasi model (Confusion Matrix, Accuracy, Classification Report)
+cm <- confusionMatrix(y_pred, y_test)
+
+print(cm)
+```
+
+```{r plot-cm}
+# Visualisasi Confusion Matrix
+cm_table <- as.data.frame(cm$table)
+
+ggplot(cm_table, aes(x = Reference, y = Prediction, fill = Freq)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = Freq), vjust = 1) +
+  scale_fill_gradient(low = "white", high = "red") +
+  labs(title = "Final Confusion Matrix on Hold-Out Test Set") +
+  theme_minimal()
+```
