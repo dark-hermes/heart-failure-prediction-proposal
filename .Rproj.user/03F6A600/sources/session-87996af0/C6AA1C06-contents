@@ -27,15 +27,12 @@ fancy: true
 ---
 
 ```{r setup, include=FALSE, eval=TRUE, warning=FALSE, message=FALSE, comment=NA, fig.align='center', out.width='50%'}
-# Blok setup untuk konfigurasi global
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.align = "center")
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center")
 
-# Install packages jika belum terinstall
 required_packages <- c("tidyverse", "caret", "randomForest", "pROC", "gridExtra", "scales", "reshape2", "knitr")
 new_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
 if (length(new_packages)) install.packages(new_packages, repos = "https://cran.r-project.org/")
 
-# Muat library yang dibutuhkan
 library(tidyverse)
 library(caret)
 library(randomForest)
@@ -256,9 +253,6 @@ train_data <- train_data %>%
   mutate(across(all_of(categorical_cols), as.factor))
 test_data <- test_data %>%
   mutate(across(all_of(categorical_cols), as.factor))
-
-print("Konversi ke factor selesai. Struktur data latih:")
-glimpse(train_data)
 ```
 
 **Analisis Korelasi Fitur Numerik:**
@@ -369,18 +363,8 @@ model_rf_baseline <- train(HeartDisease ~ .,
   preProcess = c("center", "scale"),
   importance = TRUE
 )
-# Hasil training model baseline (11 fitur)
-print(model_rf_baseline)
-
-# Parameter best model
-print(paste("Optimal mtry:", model_rf_baseline$bestTune$mtry))
-print(paste("Akurasi CV Terbaik:", round(max(model_rf_baseline$results$Accuracy), 4)))
-print(paste("Kappa CV Terbaik:", round(max(model_rf_baseline$results$Kappa), 4)))
 
 var_imp_baseline <- varImp(model_rf_baseline)
-
-# Variable Importance (baseline)
-print(var_imp_baseline)
 plot(var_imp_baseline, main = "Variable Importance (Model Baseline)")
 ```
 
@@ -487,14 +471,6 @@ model_rf_final <- train(HeartDisease ~ .,
   trControl = trControl,
   preProcess = c("center", "scale")
 )
-
-# Hasil training 9 fitur
-print(model_rf_final)
-
-# Parameter best model final
-print(paste("Optimal mtry:", model_rf_final$bestTune$mtry))
-print(paste("Akurasi CV Terbaik:", round(max(model_rf_final$results$Accuracy), 4)))
-print(paste("Kappa CV Terbaik:", round(max(model_rf_final$results$Kappa), 4)))
 ```
 
 **Perbandingan Performa Cross-Validation:**
@@ -511,30 +487,6 @@ comparison_df <- data.frame(
     round(max(model_rf_final$results$Kappa), 4)
   )
 )
-
-print(comparison_df)
-
-accuracy_diff <- comparison_df$Accuracy_CV[2] - comparison_df$Accuracy_CV[1]
-kappa_diff <- comparison_df$Kappa_CV[2] - comparison_df$Kappa_CV[1]
-
-# Analisis perbedaan
-print(paste(
-  "Perubahan Akurasi:", ifelse(accuracy_diff > 0, "+", ""),
-  round(accuracy_diff, 4),
-  "(", round(accuracy_diff * 100, 2), "%)"
-))
-print(paste(
-  "Perubahan Kappa:", ifelse(kappa_diff > 0, "+", ""),
-  round(kappa_diff, 4)
-))
-
-if (accuracy_diff >= -0.01) {
-  print("\n[OK] KESIMPULAN: Seleksi fitur BERHASIL!")
-  print("  Model lebih sederhana tanpa kehilangan performa signifikan.")
-} else {
-  print("\n⚠ CATATAN: Ada penurunan performa.")
-  print("  Perlu evaluasi lebih lanjut pada test set.")
-}
 ```
 
 ### Tahap 7: Evaluation (Model Final)
@@ -591,51 +543,6 @@ y_pred_final <- predict(model_rf_final, newdata = test_data_final)
 y_test_final <- test_data_final$HeartDisease
 
 cm_final <- confusionMatrix(y_pred_final, y_test_final)
-
-# Evaluasi model final
-print(cm_final)
-
-
-print(paste(
-  "Akurasi:", round(cm_final$overall["Accuracy"], 4),
-  "(", round(cm_final$overall["Accuracy"] * 100, 2), "%)"
-))
-print(paste("Kappa:", round(cm_final$overall["Kappa"], 4)))
-print(paste(
-  "Sensitivity (Recall):", round(cm_final$byClass["Sensitivity"], 4),
-  "- Kemampuan deteksi pasien sakit"
-))
-print(paste(
-  "Specificity:", round(cm_final$byClass["Specificity"], 4),
-  "- Kemampuan identifikasi pasien sehat"
-))
-print(paste(
-  "Precision (Pos Pred Value):", round(cm_final$byClass["Pos Pred Value"], 4),
-  "- Akurasi prediksi 'sakit'"
-))
-print(paste(
-  "F1-Score:", round(cm_final$byClass["F1"], 4),
-  "- Harmonic mean Precision & Recall"
-))
-
-tn <- cm_final$table[1, 1]
-fp <- cm_final$table[1, 2]
-fn <- cm_final$table[2, 1]
-tp <- cm_final$table[2, 2]
-
-print(paste("True Negative (TN):", tn, "- Sehat diprediksi sehat [OK]"))
-print(paste("False Positive (FP):", fp, "- Sehat diprediksi sakit [ERROR]"))
-print(paste("False Negative (FN):", fn, "- Sakit diprediksi sehat [ERROR] BAHAYA!"))
-print(paste("True Positive (TP):", tp, "- Sakit diprediksi sakit [OK]"))
-
-total_errors <- fp + fn
-print(paste("Total Error:", total_errors, "dari", nrow(test_data_final), "prediksi"))
-print(paste("Error Rate:", round((total_errors / nrow(test_data_final)) * 100, 2), "%"))
-
-if (fn > 0) {
-  print(paste("\n", fn, "pasien sakit tidak terdeteksi (False Negative)"))
-  print("  Ini adalah error paling berbahaya dalam konteks medis.")
-}
 ```
 
 **Visualisasi Performa Model:**

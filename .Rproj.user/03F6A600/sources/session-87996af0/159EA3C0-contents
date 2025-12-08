@@ -1168,12 +1168,18 @@ Berdasarkan analisis Variable Importance, **5 faktor teratas** yang memprediksi 
 
 Studi ini mendemonstrasikan bahwa **data mining dengan pendekatan seleksi fitur** dapat menghasilkan model prediktif yang tidak hanya akurat tetapi juga **lebih praktis dan dapat diimplementasikan**. Dengan berfokus pada sembilan parameter klinis utama dan mengeliminasi dua fitur yang kurang informatif, model yang dihasilkan memiliki karakteristik sebagai berikut:
 
-- **Accurate:** Akurasi `r round(cm_final$overall['Accuracy']*100, 1)`% pada test set  
-- **Efficient:** 18% pengurangan dimensi tanpa kehilangan performa  
-- **Interpretable:** Fokus pada faktor klinis yang evidence-based  
-- **Deployable:** Lebih sederhana, lebih cepat, lebih mudah diimplementasikan  
+\u2705 **Accurate:** Akurasi `r round(cm_final$overall['Accuracy']*100, 1)`% pada test set  
+\u2705 **Efficient:** 18% pengurangan dimensi tanpa kehilangan performa  
+\u2705 **Interpretable:** Fokus pada faktor klinis yang evidence-based  
+\u2705 **Deployable:** Lebih sederhana, lebih cepat, lebih mudah diimplementasikan  
 
 Hasil ini membuka peluang untuk aplikasi nyata dalam healthcare, khususnya untuk **early screening** dan **decision support** bagi tenaga medis. Namun, perlu diingat bahwa **AI adalah alat bantu, bukan pengganti judgment klinis dokter**. Model ini harus digunakan sebagai **second opinion** yang membantu dokter membuat keputusan yang lebih informed, bukan sebagai keputusan final.
 
 Dengan perkembangan teknologi dan ketersediaan data yang semakin baik, masa depan healthcare akan semakin diperkaya oleh kolaborasi antara **clinical expertise** dan **data-driven insights**. Proyek ini adalah langkah kecil menuju visi tersebut.
+
+---
+
+**"The best model is not always the most complex one, but the one that balances accuracy, interpretability, and practicality."**
+
+---
 

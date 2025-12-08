@@ -1,26 +1,26 @@
 {
-    "id": "C6AA1C06",
+    "id": "C9496138",
     "path": "C:/Users/herma/Downloads/template_modul/tes3.Rmd",
     "project_path": "tes3.Rmd",
     "type": "r_markdown",
-    "hash": "0",
+    "hash": "3965121151",
     "contents": "",
     "dirty": false,
-    "created": 1765203877067.0,
+    "created": 1765205614651.0,
     "source_on_save": false,
     "relative_order": 13,
     "properties": {
         "source_window_id": "",
         "Source": "Source6vbztl96848l",
-        "cursorPosition": "44,17",
-        "scrollLine": "38"
+        "cursorPosition": "1173,1",
+        "scrollLine": "1128"
     },
     "folds": "",
-    "lastKnownWriteTime": 1765203975,
+    "lastKnownWriteTime": 1765205831,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1765203975,
+    "last_content_update": 1765205831718,
     "read_only": false,
     "read_only_alternatives": []
 }
