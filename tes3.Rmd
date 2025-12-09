@@ -69,6 +69,8 @@ Sejalan dengan perkembangan ilmu data dan komputasi, berbagai algoritma klasifik
 2. Membangun model klasifikasi Random Forest untuk mengidentifikasi pasien berisiko tinggi gagal jantung menggunakan metrik evaluasi seperti akurasi, presisi, *recall*, dan F1-score.
 3. Mengidentifikasi fitur-fitur klinis yang paling berpengaruh terhadap penentuan kategori pasien berisiko tinggi gagal jantung berdasarkan hasil analisis model Random Forest.
 
+# Metodologi
+
 ## Sumber dan Karakteristik Data
 
 * **Sumber Data:** Dataset publik "Heart Failure Prediction Dataset" (Kaggle).
@@ -713,6 +715,8 @@ print(cm_final)
 * **Alat Utama:** RStudio
 * **Bahasa:** R
 * **Paket (Library) Kunci:** `tidyverse`, `caret`, `randomForest`.
+
+# Hasil dan Kesimpulan
 
 ## Hasil yang Diharapkan dan Dampak
 
