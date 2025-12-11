@@ -160,43 +160,54 @@ Distribusi `HeartDisease` relatif seimbang sehingga sesuai untuk pemodelan klasi
 
 **Analisis Fitur Kategorikal Tambahan:**
 
-```{r categorical-analysis, eval=TRUE, warning=FALSE, message=FALSE, comment=NA, fig.align='center', out.width='80%'}
+```{r categorical-analysis, eval=TRUE, warning=FALSE, message=FALSE, comment=NA, fig.align='center', fig.show='hold', out.width='45%', fig.asp=0.6}
 # Analisis ChestPainType dan ST_Slope
 p_chest <- ggplot(df, aes(x = ChestPainType, fill = factor(HeartDisease))) +
   geom_bar(position = "fill") +
   scale_fill_manual(
     values = c("0" = "#2ecc71", "1" = "#e74c3c"),
-    labels = c("Sehat", "Sakit")
+    labels = c("Sehat", "Sakit"),
+    name   = "Status"
   ) +
   scale_y_continuous(labels = percent) +
   labs(
-    title = "Proporsi Penyakit Jantung per Tipe Nyeri Dada",
-    subtitle = "ASY = Asymptomatic, ATA = Atypical Angina, NAP = Non-Anginal Pain, TA = Typical Angina",
+    title    = "Proporsi Penyakit Jantung per Tipe Nyeri Dada",
+    subtitle = "ASY = Asymptomatic, ATA = Atypical Angina\nNAP = Non-Anginal Pain, TA = Typical Angina",
     x = "Tipe Nyeri Dada",
-    y = "Proporsi",
-    fill = "Status"
-  ) +
-  theme_minimal() +
-  theme(legend.position = "bottom")
+    y = "Proporsi"
+  ) + theme_minimal() +
+  theme(
+    text          = element_text(size = 9),
+    plot.title    = element_text(hjust = 0.5, face = "bold", size = 11),
+    plot.subtitle = element_text(hjust = 0.5, size = 9),
+    legend.position = "bottom",
+    legend.title    = element_text(face = "bold", size = 9)
+  )
 
 p_slope <- ggplot(df, aes(x = ST_Slope, fill = factor(HeartDisease))) +
   geom_bar(position = "fill") +
   scale_fill_manual(
     values = c("0" = "#2ecc71", "1" = "#e74c3c"),
-    labels = c("Sehat", "Sakit")
+    labels = c("Sehat", "Sakit"),
+    name   = "Status"
   ) +
   scale_y_continuous(labels = percent) +
   labs(
-    title = "Proporsi Penyakit Jantung per ST Slope",
-    subtitle = "Up = Upsloping, Flat = Flat, Down = Downsloping",
+    title    = "Proporsi Penyakit Jantung per ST Slope",
+    subtitle = "Up = Upsloping, Flat = Flat\nDown = Downsloping",
     x = "ST Slope Pattern",
-    y = "Proporsi",
-    fill = "Status"
-  ) +
-  theme_minimal() +
-  theme(legend.position = "bottom")
+    y = "Proporsi"
+  ) + theme_minimal() +
+  theme(
+    text          = element_text(size = 9),
+    plot.title    = element_text(hjust = 0.5, face = "bold", size = 11),
+    plot.subtitle = element_text(hjust = 0.5, size = 9),
+    legend.position = "bottom",
+    legend.title    = element_text(face = "bold", size = 9)
+  )
 
-grid.arrange(p_chest, p_slope, ncol = 2)
+p_chest
+p_slope
 ```
 
 Analisis fitur kategorikal menunjukkan bahwa pasien dengan tipe nyeri dada asimtomatik (ASY) memiliki proporsi penyakit jantung yang sangat tinggi, yang konsisten dengan fenomena *silent heart disease*. Selain itu, pola `ST_Slope` datar maupun menurun berkaitan dengan proporsi penyakit jantung yang lebih tinggi dibandingkan pola menanjak, sejalan dengan literatur klinis mengenai hasil *exercise stress test*.
