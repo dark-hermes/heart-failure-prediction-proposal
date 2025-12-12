@@ -22,7 +22,7 @@ bibliography: references.bib
 #nocite: | 
 #  @*
 
-my_subtitle: "(Proposal)"
+my_subtitle: "Laporan"
 fancy: true
 ---
 
@@ -340,12 +340,7 @@ kable(summary_stats, caption = "Statistik Deskriptif Fitur Numerik (Train Set)")
 
 ### Tahap 4: Modeling (Iterasi 1 - Identifikasi Fitur)
 
-**Mengapa Model Baseline Penting?**
-
-Sebelum dilakukan seleksi fitur, terlebih dahulu dibangun model baseline yang dilatih pada **seluruh fitur** untuk:
-1. Memperoleh tolok ukur awal performa model,
-2. Mengidentifikasi fitur yang berkontribusi signifikan (melalui *variable importance*), dan
-3. Memahami pola keterkaitan umum dalam data.
+Sebelum dilakukan seleksi fitur, terlebih dahulu dibangun model baseline yang dilatih pada **seluruh fitur**, seperti memperoleh tolok ukur awal performa model, mengidentifikasi fitur yang berkontribusi signifikan (melalui *variable importance*), dan memahami pola keterkaitan umum dalam data.
 
 **Pilihan Teknis:**
 
@@ -416,13 +411,6 @@ Fitur `FastingBS` dan `RestingECG` dikeluarkan dari model final karena:
 2. Mengurangi kompleksitas model (dari 11 fitur  menjadi  9 fitur)
 3. Berpotensi mengurangi overfitting
 4. Dalam praktik klinis: mengurangi tes yang diperlukan (menghemat waktu dan biaya)
-
-**Metode Seleksi:**
-
-Ini adalah **filter method** berbasis importance score. Alternatif lain:
-
-- Wrapper methods (RFE - Recursive Feature Elimination): lebih akurat tapi lebih lambat
-- Embedded methods: menggunakan regularisasi (Lasso) - tidak tersedia di Random Forest standar
 
 Dataset baru kemudian dibentuk hanya dengan berisi sembilan fitur terpilih beserta variabel target.
 
@@ -500,7 +488,11 @@ comparison_df <- data.frame(
     round(max(model_rf_final$results$Kappa), 4)
   )
 )
+
+comparison_df
 ```
+
+Perbandingan performa CV menunjukkan bahwa Model Final (9 fitur) memiliki akurasi CV 0.8527 dan Kappa CV 0.7012, yang sedikit lebih rendah dibandingkan Model Baseline (11 fitur) dengan akurasi CV 0.8568 dan Kappa CV 0.7099. Penurunan performa yang sangat minimal ini (<0.005 untuk Akurasi dan Kappa) mengindikasikan bahwa fitur yang dihapus (FastingBS dan RestingECG) memang merupakan noise atau fitur dengan kontribusi prediktif yang minimal, sehingga model akhir berhasil disempurnakan dan disederhanakan (pengurangan 18% fitur) tanpa kehilangan kemampuan generalisasi yang signifikan.
 
 ### Tahap 7: Evaluation (Model Final)
 
@@ -542,10 +534,10 @@ Actual   0   TN        FP
          1   FN        TP
 ```
 
-- **True Negative (TN):** Pasien sehat diprediksi sehat [OK]
-- **True Positive (TP):** Pasien sakit diprediksi sakit [OK]
-- **False Positive (FP):** Pasien sehat diprediksi sakit [ERROR] (Type I Error)
-- **False Negative (FN):** Pasien sakit diprediksi sehat [ERROR] (Type II Error) - **PALING BERBAHAYA**
+- **True Negative (TN):** Pasien sehat diprediksi sehat 
+- **True Positive (TP):** Pasien sakit diprediksi sakit 
+- **False Positive (FP):** Pasien sehat diprediksi sakit 
+- **False Negative (FN):** Pasien sakit diprediksi sehat - **PALING BERBAHAYA**
 
 **Dalam konteks medis, FN lebih berbahaya dibandingkan FP** karena kondisi tersebut merepresentasikan pasien sakit yang tidak teridentifikasi dan tidak memperoleh penanganan yang semestinya.
 
@@ -597,42 +589,51 @@ print(cm_final)
 
 **Tugas:** Memprediksi `HeartDisease` (0 atau 1)
 
-**Output Model:**
-- Class prediction: 0 (Sehat) atau 1 (Sakit Jantung)
-- Probability: P(HeartDisease = 1) - bisa digunakan untuk risk scoring
+* **Output Model:**
+  + Class prediction: 0 (Sehat) atau 1 (Sakit Jantung)
+  + Probability: P(HeartDisease = 1) - bisa digunakan untuk risk scoring
 
-**Decision Threshold:** 
-- Default = 0.5 (jika P > 0.5, prediksi kelas 1)
-- Dalam praktik klinis, threshold bisa disesuaikan:
-  - Threshold lebih rendah (0.3-0.4): Prioritas Sensitivity (catch all positive)
-  - Threshold lebih tinggi (0.6-0.7): Prioritas Specificity (reduce false alarms)
+* **Decision Threshold:** 
+  + Default = 0.5 (jika P > 0.5, prediksi kelas 1)
+  + Dalam praktik klinis, threshold bisa disesuaikan:
+  + Threshold lebih rendah (0.3-0.4): Prioritas Sensitivity (catch all positive)
+  + Threshold lebih tinggi (0.6-0.7): Prioritas Specificity (reduce false alarms)
 
 ### Fungsi Minor (Data Preprocessing Pipeline)
 
-#### a. Pembersihan Data (Data Cleaning)
+#### Pembersihan Data (Data Cleaning)
 
-**Masalah:** Nilai biologis tidak mungkin (`RestingBP = 0`)
+- **Masalah:** Nilai biologis tidak mungkin (`RestingBP = 0`)
 
-**Solusi:** Deletion (hapus baris)
+- **Solusi:** Deletion (hapus baris)
+
+* **Justifikasi:**
+  + Jumlah affected rows < 1% (tidak signifikan mempengaruhi distribusi data)
+  + Tidak tersedia cara imputasi yang andal karena nilai sebenarnya tidak diketahui
+  + Lebih baik kehilangan sedikit data daripada mempertahankan data yang misleading
+
+#### Imputasi (Missing Value Handling)
+
+- **Masalah:**  
+  ~18% data memiliki `Cholesterol = 0`
+
+- **Solusi:**  
+  Median imputation berdasarkan *training set*
 
 **Justifikasi:**
-- Jumlah affected rows < 1% (tidak signifikan mempengaruhi distribusi data)
-- Tidak tersedia cara imputasi yang andal karena nilai sebenarnya tidak diketahui
-- Lebih baik kehilangan sedikit data daripada mempertahankan data yang misleading
 
-#### b. Imputasi (Missing Value Handling)
+* **Median vs Mean:** 
 
-**Masalah:** ~18% data memiliki `Cholesterol = 0`
-
-**Solusi:** Median Imputation dari train set
-
-**Justifikasi:**
-- **Median vs Mean:** Median lebih robust terhadap outlier
-  - Jika ada pasien dengan cholesterol ekstrem tinggi (>300), mean akan ter-skew
-  - Median tetap representatif terhadap "typical" patient
+  Median lebih robust terhadap outlier
   
-- **Train-only Calculation:** Critical untuk menghindari data leakage
-  - Jika median dihitung dari keseluruhan data (train+test), informasi dari *test set* akan “bocor” ke *training set*
+  + Jika ada pasien dengan cholesterol ekstrem tinggi (>300), mean akan ter-skew
+  + Median tetap representatif terhadap "typical" patient
+  
+* **Train-only Calculation:** 
+
+  Critical untuk menghindari data leakage
+  
+  Jika median dihitung dari keseluruhan data (train+test), informasi dari *test set* akan “bocor” ke *training set*
   - Ini menghasilkan optimistic bias pada performa model
   
 - **Alternatif yang Dipertimbangkan:**
@@ -640,54 +641,69 @@ print(cm_final)
   - Predictive Imputation (regression): Risiko compound error
   - Mode/Mean: Kurang robust dibanding median
 
-#### c. Transformasi Tipe Data
+#### Transformasi Tipe Data
 
-**Masalah:** R membaca variabel kategorikal sebagai character/integer
+- **Masalah:** R membaca variabel kategorikal sebagai character/integer
 
-**Solusi:** Konversi ke factor
+- **Solusi:** Konversi ke factor
 
 **Justifikasi:**
-- Random Forest memerlukan tipe `factor` untuk categorical variable
-- Tanpa konversi, `Sex = "M"/"F"` akan diperlakukan sebagai text, bukan kategori
-- `FastingBS = 0/1` tanpa factor akan diperlakukan sebagai numerik, padahal ini boolean
+
+* Random Forest memerlukan tipe `factor` untuk categorical variable
+* Tanpa konversi, `Sex = "M"/"F"` akan diperlakukan sebagai text, bukan kategori
+* `FastingBS = 0/1` tanpa factor akan diperlakukan sebagai numerik, padahal ini boolean
 
 **Variabel yang Dikonversi:**
-- `Sex`: M/F (2 levels)
-- `ChestPainType`: ASY, ATA, NAP, TA (4 levels)
-- `RestingECG`: LVH, Normal, ST (3 levels)
-- `ExerciseAngina`: Y/N (2 levels)
-- `ST_Slope`: Down, Flat, Up (3 levels)
-- `FastingBS`: 0/1 (2 levels)
-- `HeartDisease`: 0/1 (TARGET)
 
-#### d. Normalisasi (Feature Scaling)
+* `Sex`: M/F (2 levels)
+* `ChestPainType`: ASY, ATA, NAP, TA (4 levels)
+* `RestingECG`: LVH, Normal, ST (3 levels)
+* `ExerciseAngina`: Y/N (2 levels)
+* `ST_Slope`: Down, Flat, Up (3 levels)
+* `FastingBS`: 0/1 (2 levels)
+* `HeartDisease`: 0/1 (TARGET)
 
-**Metode:** Standardisasi (Z-score normalization)
+#### Normalisasi (Feature Scaling)
 
-**Formula:** z = (x - μ) / σ
+- **Metode:** Standardisasi (Z-score normalization)
+
+- **Formula:** z = (x - μ) / σ
+
 - Setiap fitur numerik di-transform menjadi mean=0, standard deviation=1
 
 **Justifikasi:**
-- **Untuk Random Forest:** Dampak minimal (tree-based methods scale-invariant)
-- **Best practice:** jika pada tahap selanjutnya digunakan algoritma lain (misalnya *logistic regression*, SVM, atau *neural network*), data sudah berada dalam skala yang seragam
-- **Interpretasi:** Koefisien/importance lebih mudah dibandingkan jika semua fitur pada skala yang sama
+
+* **Untuk Random Forest:** 
+
+  Dampak minimal (tree-based methods scale-invariant)
+
+* **Best practice:** 
+
+  jika pada tahap selanjutnya digunakan algoritma lain (misalnya *logistic regression*, SVM, atau *neural network*), data sudah berada dalam skala yang seragam
+  
+* **Interpretasi:** 
+
+  Koefisien/importance lebih mudah dibandingkan jika semua fitur pada skala yang sama
 
 **Parameter:**
-- `center = TRUE`: Subtract mean
-- `scale = TRUE`: Divide by standard deviation
+
+* `center = TRUE`: Subtract mean
+* `scale = TRUE`: Divide by standard deviation
 
 **Yang Di-scale:**
-- Age (range: 28-77 years)
-- RestingBP (range: 90-200 mmHg)
-- Cholesterol (range: 85-603 mg/dl)
-- MaxHR (range: 60-202 bpm)
-- Oldpeak (range: -2.6 to 6.2)
 
-#### e. Seleksi Fitur (Feature Selection)
+* Age (range: 28-77 years)
+* RestingBP (range: 90-200 mmHg)
+* Cholesterol (range: 85-603 mg/dl)
+* MaxHR (range: 60-202 bpm)
+* Oldpeak (range: -2.6 to 6.2)
 
-**Metode:** Filter Method - Variable Importance Ranking
+#### Seleksi Fitur (Feature Selection)
 
-**Proses:**
+- **Metode:** Filter Method - Variable Importance Ranking
+
+- **Proses:**
+
 1. Latih model baseline pada semua 11 fitur
 2. Ekstrak importance score untuk setiap fitur
 3. Identifikasi fitur dengan importance mendekati 0 (<5%)
@@ -695,31 +711,28 @@ print(cm_final)
 5. Re-train model dengan fitur terpilih
 
 **Fitur yang Dihapus:**
-- `FastingBS` (Importance \u2248 2-3%)
-- `RestingECG` (Importance \u2248 1-2%)
+
+* `FastingBS` (Importance \u2248 2-3%)
+* `RestingECG` (Importance \u2248 1-2%)
 
 **Fitur yang Dipertahankan (9 fitur):**
-- `ST_Slope`, `Oldpeak`, `MaxHR`, `ExerciseAngina`, `Age`, `Cholesterol`, `RestingBP`, `ChestPainType`, `Sex`
+
+* `ST_Slope`
+* `Oldpeak` 
+* `MaxHR`
+* `ExerciseAngina` 
+* `Age`
+* `Cholesterol`
+* `RestingBP`
+* `ChestPainType`
+* `Sex`
 
 **Dampak:**
-- Reduced dimensionality: 11 menjadi 9 features (18% reduction)
-- Reduced noise: Fitur yang mengganggu pembelajaran dihilangkan
-- Improved interpretability: Model lebih fokus dan mudah dijelaskan
-- Maintained/improved accuracy: Performa tidak berkurang signifikan
 
-**Kategori Feature Selection:**
-- **Filter Method** [DIGUNAKAN]
-  - Cepat, independent dari model
-  - Cons: Tidak memperhitungkan feature interaction
-  
-- **Wrapper Method** (tidak digunakan)
-  - Recursive Feature Elimination (RFE)
-  - Pros: Mempertimbangkan interaksi
-  - Cons: Komputasi sangat mahal (harus re-train berkali-kali)
-  
-- **Embedded Method** (tidak tersedia di RF)
-  - Lasso, Ridge regularization
-  - Hanya tersedia di linear models
+* Reduced dimensionality: 11 menjadi 9 features (18% reduction)
+* Reduced noise: Fitur yang mengganggu pembelajaran dihilangkan
+* Improved interpretability: Model lebih fokus dan mudah dijelaskan
+* Maintained/improved accuracy: Performa tidak berkurang signifikan
 
 ## Rencana Implementasi dan Alat yang Digunakan
 
@@ -805,26 +818,16 @@ ggplot(imp_combined, aes(x = reorder(Feature, Importance), y = Importance, fill 
 
 **Manfaat Praktis Model Final:**
 
-1. **Efisiensi Klinis**
-   - Dengan menghilangkan `FastingBS` dan `RestingECG`, jumlah tes yang diperlukan berkurang
-   - Tes gula darah puasa memerlukan pasien berpuasa 8-12 jam
-   - ECG istirahat memerlukan peralatan dan teknisi khusus
-   - **Potensi penghematan:** Waktu pasien, biaya tes, beban administratif
 
-2. **Fokus pada Faktor Kritis**
+* **Fokus pada Faktor Kritis**
    - Model mengarahkan perhatian dokter pada 9 parameter yang benar-benar informatif
    - Parameter seperti `ST_Slope`, `Oldpeak`, `ExerciseAngina` adalah hasil dari **exercise stress test**
    - Ini menekankan pentingnya stress test dalam diagnosis penyakit jantung
 
-3. **Interpretabilitas**
+* **Interpretabilitas**
    - Model dengan 9 fitur lebih mudah dijelaskan kepada pasien dan stakeholder medis
    - Dokter dapat fokus mendiskusikan faktor-faktor yang benar-benar berpengaruh
    - Meningkatkan trust terhadap sistem AI dalam healthcare
-
-4. **Performa Komputasi**
-   - Model lebih ringan: training lebih cepat, prediksi lebih cepat
-   - Mengurangi kebutuhan memori (penting untuk deployment di perangkat mobile/edge)
-   - Skalabilitas lebih baik untuk implementasi di banyak klinik
 
 **Implementasi Potensial:**
 
@@ -887,28 +890,25 @@ Proyek ini berhasil mengembangkan model prediktif untuk penyakit jantung dengan 
 
 ### Menjawab Rumusan Masalah
 
-**Pertanyaan 1:** *Bagaimana membangun model klasifikasi untuk memprediksi penyakit jantung?*
+* *Bagaimana membangun model klasifikasi untuk memprediksi penyakit jantung?*
 
-**Jawaban:** 
-- Model Random Forest dengan 10-fold cross-validation terbukti efektif
-- Pipeline preprocessing yang robust (cleaning, imputation, transformation, scaling) adalah fondasi kesuksesan
-- Akurasi test set `r round(cm_final$overall['Accuracy']*100, 1)`% menunjukkan model dapat digeneralisasi ke data baru
+  + Model Random Forest dengan 10-fold cross-validation terbukti efektif
+  + Pipeline preprocessing yang robust (cleaning, imputation, transformation, scaling) adalah fondasi kesuksesan
+  + Akurasi test set `r round(cm_final$overall['Accuracy']*100, 1)`% menunjukkan model dapat digeneralisasi ke data baru
 
-**Pertanyaan 2:** *Bagaimana menangani masalah kualitas data seperti nilai yang tidak logis?*
+* *Bagaimana menangani masalah kualitas data seperti nilai yang tidak logis?*
 
-**Jawaban:**
-- `RestingBP = 0`: Deletion strategy (jumlah sedikit)
-- `Cholesterol = 0`: Median imputation dari train set (jumlah signifikan ~18%)
-- Split data sebelum imputasi untuk menghindari data leakage
-- Hasil: Data berkualitas untuk training dan evaluasi yang fair
+  + `RestingBP = 0`: Deletion strategy (jumlah sedikit)
+  + `Cholesterol = 0`: Median imputation dari train set (jumlah signifikan ~18%)
+  + Split data sebelum imputasi untuk menghindari data leakage
+  + Hasil: Data berkualitas untuk training dan evaluasi yang fair
 
-**Pertanyaan 3:** *Apakah seleksi fitur dapat menyederhanakan model dan meningkatkan kinerjanya?*
+* *Apakah seleksi fitur dapat menyederhanakan model dan meningkatkan kinerjanya?*
 
-**Jawaban:**
-- **Ya**, seleksi fitur terbukti bermanfaat
-- Menghilangkan `FastingBS` dan `RestingECG` (importance <5%) tidak menurunkan performa
-- Model menjadi lebih sederhana, lebih cepat, dan lebih mudah diimplementasikan
-- Fokus pada 9 parameter klinis yang benar-benar informatif
+  + **Ya**, seleksi fitur terbukti bermanfaat
+  + Menghilangkan `FastingBS` dan `RestingECG` (importance <5%) tidak menurunkan performa
+  + Model menjadi lebih sederhana, lebih cepat, dan lebih mudah diimplementasikan
+  + Fokus pada 9 parameter klinis yang benar-benar informatif
 
 ### Fitur Klinis Paling Berpengaruh
 
@@ -934,24 +934,28 @@ Berdasarkan analisis Variable Importance, **5 faktor teratas** yang memprediksi 
    - Faktor risiko non-modifiable
    - Risiko meningkat eksponensial setelah usia 50 tahun
 
-**Insight Klinis:**
-- **3 dari 5 fitur teratas** berasal dari **exercise stress test** (`ST_Slope`, `Oldpeak`, `MaxHR`)
-- Ini menegaskan pentingnya stress testing dalam diagnosis penyakit jantung
-- Resting measurements saja (ECG istirahat, fasting blood sugar) **tidak cukup informatif**
+* **Insight Klinis:**
+
+  + **3 dari 5 fitur teratas** berasal dari **exercise stress test** (`ST_Slope`, `Oldpeak`, `MaxHR`)
+  + Ini menegaskan pentingnya stress testing dalam diagnosis penyakit jantung
+  + Resting measurements saja (ECG istirahat, fasting blood sugar) **tidak cukup informatif**
 
 ### Kontribusi dan Inovasi
 
-**Kontribusi Metodologis:**
+* **Kontribusi Metodologis:**
+
 1. Demonstrasi lengkap metodologi CRISP-DM dari awal hingga akhir
 2. Praktik terbaik dalam data preparation (train-test split sebelum imputasi)
 3. Pendekatan iteratif: baseline model \u2192 feature selection \u2192 final model
 
-**Kontribusi Praktis:**
+* **Kontribusi Praktis:**
+
 1. Model yang lebih sederhana dan deployable (9 fitur vs 11 fitur)
 2. Potensi pengurangan tes yang diperlukan dalam screening
 3. Fokus pada parameter yang benar-benar penting (evidence-based)
 
-**Kontribusi Edukatif:**
+* **Kontribusi Edukatif:**
+
 1. Dokumentasi lengkap dengan penjelasan setiap langkah
 2. Interpretasi hasil dalam konteks klinis
 3. Diskusi trade-off antara kompleksitas dan performa
@@ -959,41 +963,44 @@ Berdasarkan analisis Variable Importance, **5 faktor teratas** yang memprediksi 
 ### Keterbatasan Penelitian
 
 **Keterbatasan Data:**
-1. **Dataset relatif kecil** (918 observasi \u2192 ~730 setelah cleaning)
-   - Belum merepresentasikan variabilitas populasi global
-   - Perlu validasi pada dataset yang lebih besar
+
+* **Dataset relatif kecil** (918 observasi \u2192 ~730 setelah cleaning)
+  + Belum merepresentasikan variabilitas populasi global
+  + Perlu validasi pada dataset yang lebih besar
    
-2. **Potensi Selection Bias**
-   - Data dari Kaggle: tidak jelas sumber dan metode pengumpulan aslinya
-   - Mungkin sudah ter-"curate" (pasien yang datang untuk stress test, bukan populasi umum)
+* **Potensi Selection Bias**
+  + Data dari Kaggle: tidak jelas sumber dan metode pengumpulan aslinya
+  + Mungkin sudah ter-"curate" (pasien yang datang untuk stress test, bukan populasi umum)
    
-3. **Missing Context**
-   - Tidak ada informasi demografis lengkap (etnis, BMI, riwayat keluarga)
-   - Tidak ada data longitudinal (follow-up)
-   - Tidak ada informasi tentang treatment yang sudah diterima
+* **Missing Context**
+  + Tidak ada informasi demografis lengkap (etnis, BMI, riwayat keluarga)
+  + Tidak ada data longitudinal (follow-up)
+  + Tidak ada informasi tentang treatment yang sudah diterima
 
 **Keterbatasan Model:**
-1. **Binary Classification**
-   - Hanya membedakan "sakit" vs "tidak sakit"
-   - Tidak menangkap severity (ringan, sedang, berat)
-   - Tidak memprediksi tipe penyakit jantung spesifik (CAD, heart failure, arrhythmia)
+
+* **Binary Classification**
+  + Hanya membedakan "sakit" vs "tidak sakit"
+  + Tidak menangkap severity (ringan, sedang, berat)
+  + Tidak memprediksi tipe penyakit jantung spesifik (CAD, heart failure, arrhythmia)
    
-2. **Static Prediction**
-   - Model memberikan snapshot risiko saat ini
-   - Tidak memodelkan progression penyakit seiring waktu
+* **Static Prediction**
+  + Model memberikan snapshot risiko saat ini
+  + Tidak memodelkan progression penyakit seiring waktu
    
-3. **Black Box Nature**
-   - Random Forest sulit di-interpret secara granular (500 trees, ribuan decisions)
-  - Model ini memberikan informasi mengenai fitur yang penting, namun tidak secara eksplisit menampilkan aturan pengambilan keputusan spesifik untuk setiap pasien
+* **Black Box Nature**
+  + Random Forest sulit di-interpret secara granular (500 trees, ribuan decisions)
+  + Model ini memberikan informasi mengenai fitur yang penting, namun tidak secara eksplisit menampilkan aturan pengambilan keputusan spesifik untuk setiap pasien
 
 **Keterbatasan Evaluasi:**
-1. **Single Test Set Split**
-   - Meskipun ada 10-fold CV, final evaluation hanya pada satu test set
-   - Bisa saja kebetulan test set mudah/sulit
+
+* **Single Test Set Split**
+  + Meskipun ada 10-fold CV, final evaluation hanya pada satu test set
+  + Bisa saja kebetulan test set mudah/sulit
    
-2. **Threshold Default (0.5)**
-   - Belum dilakukan optimisasi threshold
-   - Dalam praktik klinis, mungkin perlu threshold berbeda (prioritas sensitivity vs specificity)
+* **Threshold Default (0.5)**
+  + Belum dilakukan optimisasi threshold
+  + Dalam praktik klinis, mungkin perlu threshold berbeda (prioritas sensitivity vs specificity)
 
 ### Rekomendasi Penelitian Lanjutan
 
@@ -1011,10 +1018,6 @@ Berdasarkan analisis Variable Importance, **5 faktor teratas** yang memprediksi 
    - Kombinasi Random Forest + Gradient Boosting (XGBoost)
    - Stacking ensemble untuk leverage kekuatan masing-masing algoritma
 
-4. **Feature Engineering**
-   - Interaction features (misalnya: Age × Cholesterol)
-   - Polynomial features untuk capture non-linearity lebih baik
-
 **Jangka Menengah:**
 
 1. **Validasi Eksternal**
@@ -1025,34 +1028,18 @@ Berdasarkan analisis Variable Importance, **5 faktor teratas** yang memprediksi 
    - Bukan hanya sakit/tidak sakit, tapi klasifikasi severity
    - Atau klasifikasi tipe penyakit jantung spesifik
    
-3. **Interpretable AI**
-   - Implement SHAP (SHapley Additive exPlanations) values
-   - Memberikan penjelasan per-patient: "Pasien ini diprediksi sakit karena X, Y, Z"
-
-4. **Imbalanced Learning Techniques**
-   - Jika kelas tidak seimbang, coba SMOTE atau cost-sensitive learning
-   - Untuk meningkatkan sensitivity (recall) pada kelas minoritas
-
 **Jangka Panjang:**
-
-1. **Temporal Modeling**
-   - Jika data longitudinal tersedia: survival analysis atau time-series prediction
-   - Prediksi: "Pasien ini akan develop penyakit jantung dalam X tahun"
    
-2. **Integration dengan Biomarkers**
-   - Incorporate lab tests lain (Troponin, BNP, CRP)
-   - Genetic markers untuk personalized medicine
-   
-3. **Multi-modal Learning**
+1. **Multi-modal Learning**
    - Gabungkan data tabular (seperti sekarang) dengan ECG signal, medical imaging
    - Deep learning untuk fusi multi-modal
    
-4. **Clinical Decision Support System**
+2. **Clinical Decision Support System**
    - Develop aplikasi web/mobile untuk deployment
    - Interface user-friendly untuk dokter dan pasien
    - Integration dengan Electronic Health Record (EHR)
 
-5. **Randomized Controlled Trial (RCT)**
+3. **Randomized Controlled Trial (RCT)**
    - Uji coba klinis: apakah penggunaan model AI benar-benar meningkatkan outcome pasien?
    - Compare AI-assisted diagnosis vs standard practice
    - Measure: detection rate, time to treatment, mortality reduction
